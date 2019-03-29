@@ -1,0 +1,130 @@
+<% layout('/layouts/default.html', {title: '购买记录列表', libs: ['dataGrid']}){ %>
+<div class="main-content">
+	<div class="row-fluid">
+			<div class="span12">
+				<div class="widget yellow">
+					<div class="widget-title">
+						<h4>
+							<i class="icon-reorder"></i>  ${text('库存管理')}
+						</h4>
+					</div>
+			<div class="box-tools pull-right">
+				<a href="#" class="btn btn-default" id="btnSearch" title="${text('查询')}"><i class="fa fa-filter"></i> ${text('查询')}</a>
+				<% if(hasPermi('dg:dgBuy:edit')){ %>
+					<a href="${ctx}/dg/dgBuy/form" class="btn btn-default btnTool" title="${text('新增购买记录')}"><i class="fa fa-plus"></i> ${text('新增')}</a>
+				<% } %>
+		</div>
+		<div class="widget-body form switch-form">
+			<#form:form id="searchForm" model="${dgBuy}" action="${ctx}/dg/dgBuy/listData" method="post" class="form-inline"
+					data-page-no="${parameter.pageNo}" data-page-size="${parameter.pageSize}" data-order-by="${parameter.orderBy}">
+				<div class="form-group">
+					<label class="control-label">${text('描述')}：</label>
+					<div class="control-inline">
+						<#form:input path="description" maxlength="200" class="form-control width-120"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('是否发货')}：</label>
+					<div class="control-inline width-90">
+						<#form:select path="issend" dictType="isSend" blankOption="true" class="form-control"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">${text('操作人')}：</label>
+					<div class="control-inline width-90">
+						<#form:select path="ispay" dictType="isPay" blankOption="true" class="form-control"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">操作时间：</label>
+					<div class="control-inline">
+						<#form:input path="startDate" readonly="readonly" maxlength="20" class="form-control Wdate-date"
+							dataFormat="date" onclick="WdatePicker({dateFmt:'yyyy-MM-dd',isShowClear:true,onpicked:function(){createDate_lte.click()}});"/>
+						&nbsp;--&nbsp;
+						<#form:input path="endDate" readonly="readonly" maxlength="20" class="form-control Wdate-date"
+							dataFormat="date" onclick="WdatePicker({dateFmt:'yyyy-MM-dd',isShowClear:true});"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">${text('查询')}</button>
+					<button type="reset" class="btn btn-default btn-sm">${text('重置')}</button>
+				</div>
+			</#form:form>
+			</div>
+				</div>
+			</div>
+		</div>
+			<div class="row-fluid">
+			<div class="span12">
+	<div class="box box-main">
+		<div class="widget red">
+			<div class="widget-title">
+						<h4>
+							<i class="icon-reorder"></i>  ${text('购买记录')}
+						</h4>
+					</div>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+		</div>
+		<div class="widget-body">
+			
+	</div>
+</div>
+</div>
+				</div>
+<% } %>
+<script>
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'${text("微信")}', name:'wechat', index:'a.wechat', width:100, align:"left", frozen:true, formatter: function(val, obj, row, act){
+			return '<a href="${ctx}/dg/dgBuy/form?ids='+row.ids+'" class="btnList" data-title="${text("编辑购买记录")}">'+(val||row.id)+'</a>';
+		}},
+		{header:'${text("描述")}', name:'description', index:'a.description', width:150, align:"left", editable:true,editoptions:{readonly:true,size:10},edittype: "textarea"},
+		{header:'${text("价格")}', name:'pricecn', index:'a.pricecn', width:80, align:"center",formatter: function(val, obj, row, act){
+			return js.formatNumber(val, 0, false, ''); // 数值类型格式化 (原始数值, 小数位数, 是否千分位, 默认值，金额情况下设置0.00);
+		}},
+		{header:'${text("地址")}', name:'address', index:'a.address', width:150, align:"left"},
+		{header:'${text("购买日期")}', name:'purchasedate', index:'a.purchasedate', width:100, align:"center", formatter:"date",formatoptions: {srcformat:'Y-m-d H:i:s',newformat:'Y-m-d'
+		}},
+		{header:'${text("是否发货")}', name:'issend', index:'a.issend', width:70, align:"center", formatter: function(val, obj, row, act){
+			return js.getDictLabel(${@DictUtils.getDictListJson('isSend2')}, val, '未知', true);
+		}},
+		{header:'${text("操作人")}', name:'ispay', index:'a.ispay', width:150, align:"center",formatter: function(val, obj, row, act){
+			return js.getDictLabel(${@DictUtils.getDictListJson('isPay')}, val, '未知', true);
+		}},
+		{header:'${text("图片")}', name:'pic', index:'a.pic', width:350, align:"left", formatter: function(val, obj, row, act){
+			var pic = val;
+			if(typeof pic == "undefined" || pic == null || pic == ""){
+				return '';
+			}else{
+				var arr = pic.split(",");
+				var str = "";
+				for (var i=0;i<arr.length;i++){
+					if(arr[i] != null && arr[i] != ""){
+						str += '<a data-fancybox="gallery" href="/js/userfiles/fileupload/' + arr[i] + '"><img height="150" width="150" src="/js/userfiles/fileupload/' + arr[i] + '"></a>';
+					}
+				}
+				return str;
+			}
+		}},
+		{header:'${text("操作")}', name:'actions', width:120, sortable:false, title:false, formatter: function(val, obj, row, act){
+			var actions = [];
+			<% if(hasPermi('dg:dgBuy:edit')){ %>
+				actions.push('<a href="${ctx}/dg/dgBuy/form?ids='+row.ids+'" class="btnList" title="${text("编辑")}"><i class="fa fa-pencil"></i></a>&nbsp;');
+				actions.push('<a href="${ctx}/dg/dgBuy/delete?ids='+row.ids+'" class="btnList" title="${text("删除")}" data-confirm="${text("确认要删除该购买记录吗？")}"><i class="fa fa-trash-o"></i></a>&nbsp;');
+			<% } %>
+			return actions.join('');
+		}}
+	],
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+		
+	}
+});
+
+
+
+</script>

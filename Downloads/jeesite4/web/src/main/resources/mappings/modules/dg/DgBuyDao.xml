@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeesite.modules.dg.dao.DgBuyDao">
+	
+	<select id="findList" resultType="DgBuy">
+		SELECT ${sqlMap.column.toSql()}
+		FROM ${sqlMap.table.toSql()}
+		<where>
+			1=1 
+			<if test="description != null and description != ''">
+				and ( description like CONCAT('%',#{description},'%') or wechat like CONCAT('%',#{description},'%') or address like CONCAT('%',#{description},'%'))
+			</if>
+			<if test="issend != null ">
+					and isSend = #{issend}
+			</if>
+			<if test="ispay != null ">
+					and isSend = #{ispay}
+			</if>
+			<if test="startDate != null and startDate != ''">
+					and purchaseDate >= str_to_date(#{startDate}, '%Y-%m-%d') 
+			</if>
+			<if test="endDate != null and endDate != ''">
+					and purchaseDate &lt;= str_to_date(#{endDate}, '%Y-%m-%d') 
+			</if>
+			
+		</where>
+		ORDER BY ${sqlMap.order.toSql()}
+	</select> 
+	
+</mapper>
